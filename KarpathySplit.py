@@ -52,3 +52,4 @@ for subset in split:
         json_data[subset]['annotations'].extend(anns)
         
     json.dump(json_data[subset], open('data/annotations/karpathy_split_' + subset + '.json', 'w'))
+    print("split {} set finished.".format(subset))
