@@ -11,7 +11,7 @@ from PIL import Image
 
 from data_loader import get_loader
 
-from prepro_train import Vocabulary
+from build_vocab import Vocabulary
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
