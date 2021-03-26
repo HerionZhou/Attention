@@ -20,7 +20,7 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--data_name', type=str, default='coco_5_cap_per_img_5_min_word_freq')
-parser.add_argument('--model_path', type=str, default='./model' , help='path for saving trained models')
+parser.add_argument('--model_path', type=str, default='./model', help='path for saving trained models')
 parser.add_argument('--crop_size', type=int, default=224, help='size for randomly cropping images')
 parser.add_argument('--vocab_path', type=str, default='./data/vocab.pkl', help='path for vocabulary wrapper')
 parser.add_argument('--image_dir', type=str, default='./data/resized', help='directory for resized images')

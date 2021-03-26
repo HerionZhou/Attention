@@ -22,7 +22,12 @@ class DataLoader(data.Dataset):
         ann_id = self.ids[index]
         caption = coco.anns[ann_id]['caption']
         img_id = coco.anns[ann_id]['image_id']
-        path = coco.loadImgs(img_id)[0]['file_name']
+        filename = coco.loadImgs(img_id)[0]['file_name']
+
+        if 'val' in filename.lower():
+            path = 'val2014/' + filename
+        else:
+            path = 'train2014/' + filename
 
         image = Image.open(os.path.join(self.root, path)).convert('RGB')
         if self.transform is not None:
