@@ -49,6 +49,7 @@ class EncoderCNN(nn.Module):
                 p.requires_grad = fine_tune
 
 
+# Spatial Attention
 class Attention(nn.Module):
     def __init__(self, encoder_dim, decoder_dim, attention_dim):
         super(Attention, self).__init__()
@@ -59,12 +60,36 @@ class Attention(nn.Module):
         self.softmax = nn.Softmax(dim=1)
 
     def forward(self, encoder_out, decoder_hidden):
-        att1 = self.encoder_att(encoder_out)
-        att2 = self.decoder_att(decoder_hidden)
-        att = self.full_att(self.relu(att1 + att2.unsqueeze(1))).squeeze(2)
-        alpha = self.softmax(att)
-        attention_weighted_encoding = (encoder_out * alpha.unsqueeze(2)).sum(dim=1)
+        att1 = self.encoder_att(encoder_out)  # b*nums*att
+        att2 = self.decoder_att(decoder_hidden)  # b*att
+        att = self.full_att(self.relu(att1 + att2.unsqueeze(1))).squeeze(2)  # b*nums*1 --> b*nums
+        alpha = self.softmax(att)  # b*nums
+        attention_weighted_encoding = (encoder_out * alpha.unsqueeze(2)).sum(dim=1)  # b*encoder_dim
         return attention_weighted_encoding, alpha
+
+
+# Channel Attention
+class AttentionChannel(nn.Module):
+    def __init__(self, encoder_dim, decoder_dim, attention_dim):
+        super(AttentionChannel, self).__init__()
+        self.avgpool = nn.AdaptiveAvgPool2d(1)
+        self.encoder_att = nn.Linear(encoder_dim, attention_dim)
+        self.decoder_att = nn.Linear(decoder_dim, attention_dim)
+        self.full_att = nn.Linear(attention_dim, 1)
+        self.relu = nn.ReLU()
+        self.softmax = nn.Softmax(dim=1)
+
+    def forward(self, encoder_out, decoder_hidden):
+        encoder_out_tem = encoder_out.permute(0, 2, 1)  # b*encoder_dim*nums
+        encoder_out_tem = self.avgpool(encoder_out_tem)  # b*encoder_dim*1
+        att1 = self.encoder_att(encoder_out_tem)  # b*encoder_dim*att
+        att2 = self.decoder_att(decoder_hidden)  # b*att
+        att = self.full_att(self.relu(att1 + att2.unsqueeze(1))).squeeze(2)  # b*encoder_dim*1 --> b*encoder_dim
+        alpha = self.softmax(att)  # b*encoder_dim
+        attention_weighted_channel_encoding = (encoder_out_tem * alpha.unsqueeze(2))  # b*encoder_dim*nums
+        attention_weighted_channel_encoding = attention_weighted_channel_encoding.permute(0, 2, 1)  # b*nums*encoder_dim
+        attention_weighted_channel_encoding = attention_weighted_channel_encoding.sum(dim=1)  # b*encoder_dim
+        return attention_weighted_channel_encoding, alpha
 
 
 class AttnDecoderRNN(nn.Module):
